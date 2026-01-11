@@ -3311,6 +3311,7 @@ int id invisible 0x7f0800e1
 int id inward 0x7f0800e2
 int id italic 0x7f0800e3
 int id item_touch_helper_previous_elevation 0x7f0800e4
+int id joystickView 0x7f0801f6
 int id jumpToEnd 0x7f0800e5
 int id jumpToStart 0x7f0800e6
 int id labeled 0x7f0800e7
@@ -3474,7 +3475,6 @@ int id search_voice_btn 0x7f080184
 int id select_dialog_listview 0x7f080185
 int id selected 0x7f080186
 int id selection_type 0x7f080187
-int id sendMessageButton 0x7f080188
 int id sharedValueSet 0x7f080189
 int id sharedValueUnset 0x7f08018a
 int id shortcut 0x7f08018b

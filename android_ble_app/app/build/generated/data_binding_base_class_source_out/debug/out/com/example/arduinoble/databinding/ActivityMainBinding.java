@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
+import com.example.arduinoble.JoystickView;
 import com.example.arduinoble.R;
 import java.lang.NullPointerException;
 import java.lang.Override;
@@ -24,13 +25,13 @@ public final class ActivityMainBinding implements ViewBinding {
   public final Button disconnectButton;
 
   @NonNull
+  public final JoystickView joystickView;
+
+  @NonNull
   public final TextView logText;
 
   @NonNull
   public final Button scanButton;
-
-  @NonNull
-  public final Button sendMessageButton;
 
   @NonNull
   public final TextView statusLabel;
@@ -39,13 +40,13 @@ public final class ActivityMainBinding implements ViewBinding {
   public final TextView statusText;
 
   private ActivityMainBinding(@NonNull ConstraintLayout rootView, @NonNull Button disconnectButton,
-      @NonNull TextView logText, @NonNull Button scanButton, @NonNull Button sendMessageButton,
+      @NonNull JoystickView joystickView, @NonNull TextView logText, @NonNull Button scanButton,
       @NonNull TextView statusLabel, @NonNull TextView statusText) {
     this.rootView = rootView;
     this.disconnectButton = disconnectButton;
+    this.joystickView = joystickView;
     this.logText = logText;
     this.scanButton = scanButton;
-    this.sendMessageButton = sendMessageButton;
     this.statusLabel = statusLabel;
     this.statusText = statusText;
   }
@@ -83,6 +84,12 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.joystickView;
+      JoystickView joystickView = ViewBindings.findChildViewById(rootView, id);
+      if (joystickView == null) {
+        break missingId;
+      }
+
       id = R.id.logText;
       TextView logText = ViewBindings.findChildViewById(rootView, id);
       if (logText == null) {
@@ -92,12 +99,6 @@ public final class ActivityMainBinding implements ViewBinding {
       id = R.id.scanButton;
       Button scanButton = ViewBindings.findChildViewById(rootView, id);
       if (scanButton == null) {
-        break missingId;
-      }
-
-      id = R.id.sendMessageButton;
-      Button sendMessageButton = ViewBindings.findChildViewById(rootView, id);
-      if (sendMessageButton == null) {
         break missingId;
       }
 
@@ -113,8 +114,8 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ActivityMainBinding((ConstraintLayout) rootView, disconnectButton, logText,
-          scanButton, sendMessageButton, statusLabel, statusText);
+      return new ActivityMainBinding((ConstraintLayout) rootView, disconnectButton, joystickView,
+          logText, scanButton, statusLabel, statusText);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

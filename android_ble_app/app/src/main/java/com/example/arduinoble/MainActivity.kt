@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
     // UI Elements
     private lateinit var statusText: TextView
     private lateinit var scanButton: Button
-    private lateinit var sendMessageButton: Button
+    private lateinit var joystickView: JoystickView
     private lateinit var disconnectButton: Button
     private lateinit var logText: TextView
 
@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         // Initialize UI elements
         statusText = findViewById(R.id.statusText)
         scanButton = findViewById(R.id.scanButton)
-        sendMessageButton = findViewById(R.id.sendMessageButton)
+        joystickView = findViewById(R.id.joystickView)
         disconnectButton = findViewById(R.id.disconnectButton)
         logText = findViewById(R.id.logText)
 
@@ -88,9 +88,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        sendMessageButton.setOnClickListener {
-            sendMessage()
-        }
+        // Set up joystick listener
+        joystickView.setOnJoystickMoveListener(object : JoystickView.OnJoystickMoveListener {
+            override fun onJoystickMove(x: Float, y: Float) {
+                sendJoystickPosition(x, y)
+            }
+        })
 
         disconnectButton.setOnClickListener {
             disconnectFromDevice()
@@ -243,7 +246,7 @@ class MainActivity : AppCompatActivity() {
                     runOnUiThread {
                         addLog("Connected to GATT server")
                         updateStatus(getString(R.string.status_connected))
-                        sendMessageButton.isEnabled = true
+                        joystickView.isEnabled = true
                         disconnectButton.isEnabled = true
                     }
 
@@ -268,7 +271,7 @@ class MainActivity : AppCompatActivity() {
                     runOnUiThread {
                         addLog("Disconnected from GATT server")
                         updateStatus(getString(R.string.status_disconnected))
-                        sendMessageButton.isEnabled = false
+                        joystickView.isEnabled = false
                         disconnectButton.isEnabled = false
                         scanButton.isEnabled = true
                     }
@@ -299,33 +302,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun sendMessage() {
+    private fun sendJoystickPosition(x: Float, y: Float) {
         val characteristic = messageCharacteristic
         val gatt = bluetoothGatt
 
         if (characteristic == null || gatt == null) {
-            addLog("Error: Not connected or characteristic not found")
             return
         }
 
-        val message = "Hello from Android! Time: ${System.currentTimeMillis()}"
+        // Format: "X:0.50,Y:-0.75"
+        val message = String.format("X:%.2f,Y:%.2f", x, y)
 
         try {
             characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             characteristic.value = message.toByteArray(Charsets.UTF_8)
 
-            val success = gatt.writeCharacteristic(characteristic)
-
-            if (success) {
-                addLog("Sent message: $message")
-                Toast.makeText(this, getString(R.string.message_sent), Toast.LENGTH_SHORT).show()
-            } else {
-                addLog("Failed to send message")
-            }
+            gatt.writeCharacteristic(characteristic)
         } catch (e: SecurityException) {
             addLog("Error: Permission denied")
         } catch (e: Exception) {
-            addLog("Error sending message: ${e.message}")
+            addLog("Error sending joystick position: ${e.message}")
         }
     }
 

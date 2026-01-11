@@ -1,9 +1,9 @@
 /*
-  Arduino UNO R4 WiFi BLE Project
+  Arduino UNO R4 WiFi BLE Joystick Receiver
 
   This sketch sets up the Arduino in BLE pairing mode and waits for
-  a connection from an Android app. When a message is received via BLE,
-  it logs the message to the Serial port.
+  a connection from an Android app. When joystick position data is
+  received via BLE, it prints the position to the Serial port.
 
   Required Library: ArduinoBLE (install via Library Manager)
 */
@@ -26,8 +26,8 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);  // Wait for serial port to connect
 
-  Serial.println("Arduino UNO R4 WiFi - BLE Message Receiver");
-  Serial.println("==========================================");
+  Serial.println("Arduino UNO R4 WiFi - BLE Joystick Receiver");
+  Serial.println("============================================");
 
   // Initialize BLE
   if (!BLE.begin()) {
@@ -72,13 +72,11 @@ void loop() {
     while (central.connected()) {
       // Check if the characteristic has been written to
       if (messageCharacteristic.written()) {
-        String receivedMessage = messageCharacteristic.value();
+        String joystickPosition = messageCharacteristic.value();
 
-        // Log the received message to serial
-        Serial.println("----------------------------");
-        Serial.print("Message received: ");
-        Serial.println(receivedMessage);
-        Serial.println("----------------------------");
+        // Print the joystick position to serial
+        Serial.print("Joystick: ");
+        Serial.println(joystickPosition);
       }
     }
 
