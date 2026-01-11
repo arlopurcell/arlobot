@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Arduino BLE</string>
+    <string name="scan_button">Scan for Arduino</string>
+    <string name="send_message_button">Send Message to Arduino</string>
+    <string name="disconnect_button">Disconnect</string>
+    <string name="status_label">Status:</string>
+    <string name="status_idle">Not connected</string>
+    <string name="status_scanning">Scanning for devices...</string>
+    <string name="status_connecting">Connecting...</string>
+    <string name="status_connected">Connected to Arduino</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="message_sent">Message sent!</string>
+</resources>
