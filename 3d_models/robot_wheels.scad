@@ -25,12 +25,12 @@ tire_thickness = 3;       // Thickness of tire tread (mm)
 hub_diameter = 20;        // Central hub diameter (mm)
 hub_height = 15;          // Hub height/depth (mm)
 
-// Motor shaft (most hobby motors use 3mm, 4mm, or 6mm shafts)
-shaft_diameter = 4;       // Motor shaft diameter (mm)
+// Motor shaft (N20 micro gear motor uses 2mm shaft)
+shaft_diameter = 2;       // Motor shaft diameter (mm) - N20 standard
 shaft_flat = true;        // Does shaft have a flat side? (D-shaft)
-shaft_flat_depth = 0.5;   // Depth of flat on D-shaft (mm)
-set_screw_diameter = 3;   // M3 set screw to hold wheel on shaft
-set_screw_depth = 10;     // Depth of set screw hole
+shaft_flat_depth = 0.3;   // Depth of flat on D-shaft (mm)
+set_screw_diameter = 2;   // M2 set screw to hold wheel on shaft (smaller for 2mm shaft)
+set_screw_depth = 8;      // Depth of set screw hole
 
 // Spoke design
 num_spokes = 6;           // Number of spokes (4, 5, or 6 recommended)

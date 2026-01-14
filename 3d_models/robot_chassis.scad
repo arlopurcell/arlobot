@@ -21,11 +21,11 @@ chassis_length = 140;    // Length of the base plate (mm)
 chassis_width = 100;     // Width of the base plate (mm)
 chassis_thickness = 3;   // Thickness of plates (mm)
 
-// Motor parameters
-motor_diameter = 37;     // DC motor diameter (mm)
-motor_length = 70;       // Motor body length (mm)
-motor_shaft_length = 15; // Length of motor shaft extending out (mm)
-motor_mount_screw_distance = 32; // Distance between motor mounting holes
+// Motor parameters (N20 micro gear motor)
+motor_diameter = 20;     // DC motor diameter (mm) - N20 standard
+motor_length = 40;       // Motor body length (mm) - typical N20 with gearbox
+motor_shaft_length = 10; // Length of motor shaft extending out (mm)
+motor_mount_screw_distance = 15; // Distance between motor mounting holes
 motor_height = 10;       // Height of motor center from ground (mm)
 
 // Wheel parameters
