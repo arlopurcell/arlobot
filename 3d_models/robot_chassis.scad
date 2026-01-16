@@ -122,12 +122,8 @@ module motor_mount() {
 
     difference() {
         union() {
-            // Horizontal mounting flange (attaches to chassis)
-            translate([-mount_flange_length/2, -mount_flange_width/2, 0])
-                cube([mount_flange_length, mount_flange_width, bracket_thickness]);
-
-            // Vertical support post connecting flange to motor housing
-            translate([0, 0, bracket_thickness])
+            // Vertical support post connecting to motor housing
+            translate([0, 0, 0])
                 cylinder(d=housing_outer_diameter, h=motor_height - motor_diameter/2, $fn=40);
 
             // Cylindrical motor housing (fully encases motor)
@@ -135,10 +131,10 @@ module motor_mount() {
                 rotate([0, 90, 0])
                 cylinder(d=housing_outer_diameter, h=housing_length, center=true, $fn=50);
 
-            // Front cap (closed end) - reinforced
+            // Front cap (closed end)
             translate([housing_length/2, 0, motor_height])
                 rotate([0, 90, 0])
-                cylinder(d=housing_outer_diameter + 2, h=bracket_thickness, $fn=50);
+                cylinder(d=housing_outer_diameter, h=bracket_thickness, $fn=50);
         }
 
         // Motor cavity (flattened cylinder for motor body - N20 has flat sides)
@@ -172,12 +168,6 @@ module motor_mount() {
 
         translate([0, 0, motor_height - housing_outer_diameter/2 + wire_slot_height/2])
             cube([housing_length - 10, wire_slot_width, wire_slot_height + 1], center=true);
-
-        // Mounting screw holes in flange (match motor_mount_tab)
-        translate([15, motor_mount_screw_distance/2, -1])
-            cylinder(d=3.2, h=bracket_thickness + 2, $fn=20);
-        translate([15, -motor_mount_screw_distance/2, -1])
-            cylinder(d=3.2, h=bracket_thickness + 2, $fn=20);
 
         // Set screw holes to secure motor (two on sides - perpendicular to shaft)
         // These allow you to tighten small screws against the motor to lock it in place
