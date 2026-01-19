@@ -45,7 +45,7 @@ battery_width = 60;
 battery_height = 20;
 
 // Print tolerance
-tolerance = 0.2;
+tolerance = 1.0;
 
 // ===== RENDERING LOGIC =====
 
@@ -109,11 +109,13 @@ module motor_mount_tab() {
 module motor_mount() {
     // Fully enclosed motor mount that encases the motor completely
     bracket_thickness = 3;
+    front_cap_thickness = 1.5;  // Thinner front wall for shaft exit
     mount_flange_length = 45;
     mount_flange_width = 35;
+    epsilon = 0.01;  // Small value to ensure clean boolean operations
 
     // Motor housing dimensions
-    housing_length = motor_length + 2;  // Slightly longer than motor
+    housing_length = motor_length - 10;  // Shorter housing for more shaft protrusion
     housing_outer_diameter = motor_diameter + 2 * bracket_thickness;
 
     // Wire slot dimensions
@@ -123,8 +125,8 @@ module motor_mount() {
     difference() {
         union() {
             // Vertical support post connecting to motor housing
-            translate([0, 0, 0])
-                cylinder(d=housing_outer_diameter, h=motor_height - motor_diameter/2, $fn=40);
+            translate([0, 0, -epsilon])
+                cylinder(d=housing_outer_diameter, h=motor_height - motor_diameter/2 + epsilon, $fn=40);
 
             // Cylindrical motor housing (fully encases motor)
             translate([0, 0, motor_height])
@@ -132,9 +134,9 @@ module motor_mount() {
                 cylinder(d=housing_outer_diameter, h=housing_length, center=true, $fn=50);
 
             // Front cap (closed end)
-            translate([housing_length/2, 0, motor_height])
+            translate([housing_length/2 - epsilon, 0, motor_height])
                 rotate([0, 90, 0])
-                cylinder(d=housing_outer_diameter, h=bracket_thickness, $fn=50);
+                cylinder(d=housing_outer_diameter, h=front_cap_thickness + epsilon, $fn=50);
         }
 
         // Motor cavity (flattened cylinder for motor body - N20 has flat sides)
@@ -142,42 +144,42 @@ module motor_mount() {
             rotate([0, 90, 0])
             intersection() {
                 // Circular outer shape
-                cylinder(d=motor_diameter + tolerance, h=housing_length + 2, center=true, $fn=50);
+                cylinder(d=motor_diameter + tolerance, h=housing_length + 4, center=true, $fn=50);
                 // Flattened sides - cube constrains width to motor_flat_width
-                cube([housing_length + 4, motor_flat_width + tolerance, motor_diameter + tolerance], center=true);
+                cube([housing_length + 6, motor_flat_width + tolerance, motor_diameter + tolerance], center=true);
             }
 
         // Motor shaft exit hole (rear opening) - flattened opening for motor insertion
-        translate([-housing_length/2 - 1, 0, motor_height])
+        translate([-housing_length/2 - bracket_thickness, 0, motor_height])
             rotate([0, 90, 0])
             intersection() {
                 // Circular opening slightly larger than motor - goes deep enough to reach cavity
-                cylinder(d=motor_diameter + tolerance + 2, h=housing_length, $fn=40);
+                cylinder(d=motor_diameter + tolerance + 2, h=housing_length + bracket_thickness + 1, $fn=40);
                 // Flattened sides to match motor shape
-                cube([motor_diameter + tolerance + 2, motor_flat_width + tolerance + 2, motor_diameter + tolerance + 2], center=true);
+                cube([housing_length + bracket_thickness + 1, motor_flat_width + tolerance + 2, motor_diameter + tolerance + 2], center=true);
             }
 
         // Motor shaft exit hole (front opening) - 4mm hole through front cap for shaft to exit outward
-        translate([housing_length/2 - housing_length/2 - 2, 0, motor_height])
+        translate([-2, 0, motor_height])
             rotate([0, 90, 0])
-            cylinder(d=4, h=housing_length, $fn=40);
+            cylinder(d=4, h=housing_length + bracket_thickness + 2, $fn=40);
 
         // Wire access slots (two slots on top and bottom for motor wires)
-        translate([0, 0, motor_height + housing_outer_diameter/2 - wire_slot_height/2])
+        translate([0, 0, motor_height + housing_outer_diameter/2 - wire_slot_height/2 + epsilon])
             cube([housing_length - 10, wire_slot_width, wire_slot_height + 1], center=true);
 
-        translate([0, 0, motor_height - housing_outer_diameter/2 + wire_slot_height/2])
+        translate([0, 0, motor_height - housing_outer_diameter/2 + wire_slot_height/2 - epsilon])
             cube([housing_length - 10, wire_slot_width, wire_slot_height + 1], center=true);
 
         // Set screw holes to secure motor (two on sides - perpendicular to shaft)
         // These allow you to tighten small screws against the motor to lock it in place
-        translate([housing_length/4, housing_outer_diameter/2 - bracket_thickness/2, motor_height])
+        translate([housing_length/4, housing_outer_diameter/2 + epsilon, motor_height])
             rotate([90, 0, 0])
-            cylinder(d=2.5, h=bracket_thickness + 1, $fn=20);
+            cylinder(d=2.5, h=bracket_thickness + 2*epsilon, $fn=20);
 
-        translate([-housing_length/4, housing_outer_diameter/2 - bracket_thickness/2, motor_height])
+        translate([-housing_length/4, housing_outer_diameter/2 + epsilon, motor_height])
             rotate([90, 0, 0])
-            cylinder(d=2.5, h=bracket_thickness + 1, $fn=20);
+            cylinder(d=2.5, h=bracket_thickness + 2*epsilon, $fn=20);
     }
 }
 

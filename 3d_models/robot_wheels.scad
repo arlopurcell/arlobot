@@ -17,18 +17,19 @@ part = "single_piece_wheel"; // Options: "wheel", "tire", "complete_wheel", "sin
 
 // Wheel dimensions
 wheel_diameter = 65;      // Overall wheel diameter (mm)
-wheel_width = 27;         // Total wheel width (mm)
-rim_width = 20;           // Width of the plastic rim (mm)
+wheel_width = 13.5;       // Total wheel width (mm)
+rim_width = 10;           // Width of the plastic rim (mm)
 tire_thickness = 3;       // Thickness of tire tread (mm)
 
 // Hub dimensions
 hub_diameter = 20;        // Central hub diameter (mm)
-hub_height = 15;          // Hub height/depth (mm)
+hub_height = 13.5;        // Hub height/depth (mm) - extends to wheel edge
 
 // Motor shaft (N20 micro gear motor uses 2mm shaft)
 shaft_diameter = 2;       // Motor shaft diameter (mm) - N20 standard
 shaft_flat = true;        // Does shaft have a flat side? (D-shaft)
 shaft_flat_depth = 0.3;   // Depth of flat on D-shaft (mm)
+shaft_tolerance = -0.05;  // Negative tolerance for tight press fit
 set_screw_diameter = 2;   // M2 set screw to hold wheel on shaft (smaller for 2mm shaft)
 set_screw_depth = 8;      // Depth of set screw hole
 
@@ -37,7 +38,7 @@ num_spokes = 6;           // Number of spokes (4, 5, or 6 recommended)
 spoke_thickness = 3;      // Thickness of each spoke (mm)
 
 // Tire tread
-tread_style = "chevron";  // Options: "smooth", "chevron", "diamond", "circular"
+tread_style = "smooth";   // Options: "smooth", "chevron", "diamond", "circular"
 tread_depth = 1;          // Depth of tread pattern (mm)
 num_treads = 16;          // Number of tread elements around circumference
 
@@ -78,48 +79,32 @@ module wheel_rim() {
                 rotate([0, 0, i * 360/num_spokes])
                     spoke();
             }
-
-            // Outer rim
-            difference() {
-                cylinder(d=wheel_diameter - tire_thickness*2, h=rim_width, center=true, $fn=80);
-                cylinder(d=wheel_diameter - tire_thickness*2 - 4, h=rim_width + 2, center=true, $fn=80);
-            }
         }
 
         // Motor shaft hole
-        cylinder(d=shaft_diameter + tolerance, h=hub_height + 2, center=true, $fn=30);
+        cylinder(d=shaft_diameter + shaft_tolerance, h=hub_height + 2, center=true, $fn=30);
 
         // Flat on D-shaft
         if (shaft_flat) {
             translate([shaft_diameter/2 - shaft_flat_depth, 0, 0])
                 cube([shaft_diameter, shaft_diameter, hub_height + 2], center=true);
         }
-
-        // Set screw hole (perpendicular to shaft)
-        rotate([90, 0, 0])
-            translate([0, 0, -hub_diameter/2 + set_screw_depth/2])
-            cylinder(d=set_screw_diameter, h=set_screw_depth, center=true, $fn=20);
-
-        // Countersink for set screw head
-        rotate([90, 0, 0])
-            translate([0, 0, -hub_diameter/2 + 1.5])
-            cylinder(d=set_screw_diameter * 1.8, h=3, center=true, $fn=20);
     }
 }
 
 module spoke() {
-    // Single spoke from hub to rim
-    rim_radius = (wheel_diameter - tire_thickness*2) / 2;
-    spoke_length = rim_radius - hub_diameter/2;
+    // Single spoke from hub to tire ridge (for printability without supports)
+    tire_inner_radius = (wheel_diameter - tire_thickness*2) / 2;
+    spoke_length = tire_inner_radius - hub_diameter/2;
 
     hull() {
         // Start at hub
         translate([hub_diameter/2, 0, 0])
-            cylinder(d=spoke_thickness, h=rim_width, center=true, $fn=20);
+            cylinder(d=spoke_thickness, h=wheel_width, center=true, $fn=20);
 
-        // End at rim
-        translate([rim_radius - 2, 0, 0])
-            cylinder(d=spoke_thickness, h=rim_width, center=true, $fn=20);
+        // End at tire ridge (extend into the tire)
+        translate([tire_inner_radius + tire_thickness/2, 0, 0])
+            cylinder(d=spoke_thickness, h=wheel_width, center=true, $fn=20);
     }
 }
 
