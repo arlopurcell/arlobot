@@ -6,6 +6,9 @@
   received via BLE, it controls two DC motors using differential drive.
 
   Required Library: ArduinoBLE (install via Library Manager)
+
+  IMPORTANT: Arduino must be powered through the motor shield (battery pack),
+  NOT through USB, for the motors to work properly.
 */
 
 #include <ArduinoBLE.h>
@@ -16,16 +19,15 @@
 #define CHARACTERISTIC_UUID "19B10001-E8F2-537E-4F6C-D104768A1214"
 
 // Motor Pin Definitions for L298P Shield
-// Adjust these pins if your shield uses different connections
 // Motor A (Left Motor)
-#define MOTOR_A_PWM  10   // Speed control (ENA)
+#define MOTOR_A_ENA  3    // Speed control (Enable A)
 #define MOTOR_A_IN1  12   // Direction pin 1
 #define MOTOR_A_IN2  13   // Direction pin 2
 
 // Motor B (Right Motor)
-#define MOTOR_B_PWM  5    // Speed control (ENB)
-#define MOTOR_B_IN1  8    // Direction pin 1
-#define MOTOR_B_IN2  7    // Direction pin 2
+#define MOTOR_B_ENB  11   // Speed control (Enable B)
+#define MOTOR_B_IN3  8    // Direction pin 3
+#define MOTOR_B_IN4  7    // Direction pin 4
 
 // Motor speed limits (0-255)
 #define MAX_SPEED 255
@@ -46,12 +48,12 @@ void setup() {
   Serial.println("===========================================");
 
   // Initialize motor pins
-  pinMode(MOTOR_A_PWM, OUTPUT);
+  pinMode(MOTOR_A_ENA, OUTPUT);
   pinMode(MOTOR_A_IN1, OUTPUT);
   pinMode(MOTOR_A_IN2, OUTPUT);
-  pinMode(MOTOR_B_PWM, OUTPUT);
-  pinMode(MOTOR_B_IN1, OUTPUT);
-  pinMode(MOTOR_B_IN2, OUTPUT);
+  pinMode(MOTOR_B_ENB, OUTPUT);
+  pinMode(MOTOR_B_IN3, OUTPUT);
+  pinMode(MOTOR_B_IN4, OUTPUT);
 
   // Stop motors initially
   stopMotors();
@@ -165,40 +167,41 @@ void setMotorSpeed(float leftSpeed, float rightSpeed) {
   if (abs(leftSpeed) < DEADZONE) leftSpeed = 0;
   if (abs(rightSpeed) < DEADZONE) rightSpeed = 0;
 
-  // Control left motor
+  // Control left motor (Motor A)
   if (leftSpeed > 0) {
     // Forward
     digitalWrite(MOTOR_A_IN1, HIGH);
     digitalWrite(MOTOR_A_IN2, LOW);
-    analogWrite(MOTOR_A_PWM, (int)(leftSpeed * MAX_SPEED));
+    analogWrite(MOTOR_A_ENA, (int)(leftSpeed * MAX_SPEED));
   } else if (leftSpeed < 0) {
     // Backward
     digitalWrite(MOTOR_A_IN1, LOW);
     digitalWrite(MOTOR_A_IN2, HIGH);
-    analogWrite(MOTOR_A_PWM, (int)(-leftSpeed * MAX_SPEED));
+    analogWrite(MOTOR_A_ENA, (int)(-leftSpeed * MAX_SPEED));
   } else {
     // Stop
     digitalWrite(MOTOR_A_IN1, LOW);
     digitalWrite(MOTOR_A_IN2, LOW);
-    analogWrite(MOTOR_A_PWM, 0);
+    analogWrite(MOTOR_A_ENA, 0);
   }
 
-  // Control right motor
+  // Control right motor (Motor B)
+  // Note: IN3/IN4 are swapped due to motor wiring
   if (rightSpeed > 0) {
     // Forward
-    digitalWrite(MOTOR_B_IN1, HIGH);
-    digitalWrite(MOTOR_B_IN2, LOW);
-    analogWrite(MOTOR_B_PWM, (int)(rightSpeed * MAX_SPEED));
+    digitalWrite(MOTOR_B_IN3, LOW);
+    digitalWrite(MOTOR_B_IN4, HIGH);
+    analogWrite(MOTOR_B_ENB, (int)(rightSpeed * MAX_SPEED));
   } else if (rightSpeed < 0) {
     // Backward
-    digitalWrite(MOTOR_B_IN1, LOW);
-    digitalWrite(MOTOR_B_IN2, HIGH);
-    analogWrite(MOTOR_B_PWM, (int)(-rightSpeed * MAX_SPEED));
+    digitalWrite(MOTOR_B_IN3, HIGH);
+    digitalWrite(MOTOR_B_IN4, LOW);
+    analogWrite(MOTOR_B_ENB, (int)(-rightSpeed * MAX_SPEED));
   } else {
     // Stop
-    digitalWrite(MOTOR_B_IN1, LOW);
-    digitalWrite(MOTOR_B_IN2, LOW);
-    analogWrite(MOTOR_B_PWM, 0);
+    digitalWrite(MOTOR_B_IN3, LOW);
+    digitalWrite(MOTOR_B_IN4, LOW);
+    analogWrite(MOTOR_B_ENB, 0);
   }
 }
 
@@ -206,8 +209,8 @@ void setMotorSpeed(float leftSpeed, float rightSpeed) {
 void stopMotors() {
   digitalWrite(MOTOR_A_IN1, LOW);
   digitalWrite(MOTOR_A_IN2, LOW);
-  digitalWrite(MOTOR_B_IN1, LOW);
-  digitalWrite(MOTOR_B_IN2, LOW);
-  analogWrite(MOTOR_A_PWM, 0);
-  analogWrite(MOTOR_B_PWM, 0);
+  digitalWrite(MOTOR_B_IN3, LOW);
+  digitalWrite(MOTOR_B_IN4, LOW);
+  analogWrite(MOTOR_A_ENA, 0);
+  analogWrite(MOTOR_B_ENB, 0);
 }

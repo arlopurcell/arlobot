@@ -77,10 +77,16 @@ class JoystickView @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
-                handleTouchMove(event.x, event.y)
+                // Check if touch is still within the view bounds
+                if (event.x >= 0 && event.x <= width && event.y >= 0 && event.y <= height) {
+                    handleTouchMove(event.x, event.y)
+                } else {
+                    // Finger left the joystick area, reset
+                    resetJoystick()
+                }
                 return true
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 resetJoystick()
                 return true
             }

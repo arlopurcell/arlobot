@@ -18,6 +18,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.Button
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var scanButton: Button
     private lateinit var joystickView: JoystickView
     private lateinit var disconnectButton: Button
+    private lateinit var logScrollView: ScrollView
     private lateinit var logText: TextView
 
     // Bluetooth
@@ -65,6 +67,7 @@ class MainActivity : AppCompatActivity() {
         scanButton = findViewById(R.id.scanButton)
         joystickView = findViewById(R.id.joystickView)
         disconnectButton = findViewById(R.id.disconnectButton)
+        logScrollView = findViewById(R.id.logScrollView)
         logText = findViewById(R.id.logText)
 
         // Initialize Bluetooth
@@ -327,11 +330,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun disconnectFromDevice() {
         try {
+            addLog("Disconnecting...")
+            updateStatus(getString(R.string.status_disconnected))
+            joystickView.isEnabled = false
+            disconnectButton.isEnabled = false
+            scanButton.isEnabled = true
+
             bluetoothGatt?.disconnect()
             bluetoothGatt?.close()
             bluetoothGatt = null
             messageCharacteristic = null
-            addLog("Disconnecting...")
         } catch (e: SecurityException) {
             addLog("Error: Permission denied")
         }
@@ -350,9 +358,8 @@ class MainActivity : AppCompatActivity() {
             logText.text = "$currentLog\n[$timestamp] $message"
 
             // Auto-scroll to bottom
-            val scrollAmount = logText.layout?.getLineTop(logText.lineCount) ?: 0
-            if (scrollAmount > logText.height) {
-                logText.scrollTo(0, scrollAmount - logText.height)
+            logScrollView.post {
+                logScrollView.fullScroll(ScrollView.FOCUS_DOWN)
             }
         }
     }
