@@ -10,11 +10,14 @@
  * 3. Press F6 to render, then Export as STL
  */
 
+// Import gear components from robot_wheels.scad
+use <robot_wheels.scad>
+
 // ===== CONFIGURATION PARAMETERS =====
 // Adjust these to customize your robot
 
 // Which part to render (for STL export)
-part = "bottom_plate"; // Options: "bottom_plate", "motor_mount", "assembly"
+part = "bottom_plate"; // Options: "bottom_plate", "motor_mount", "assembly", "geared_assembly", "labeled_assembly"
 
 // Chassis dimensions
 chassis_length = 140;    // Length of the base plate (mm)
@@ -55,26 +58,58 @@ if (part == "bottom_plate") {
     motor_mount();
 } else if (part == "assembly") {
     assembly();
+} else if (part == "geared_assembly") {
+    geared_assembly();
+} else if (part == "labeled_assembly") {
+    labeled_assembly();
 }
 
 // ===== MODULES =====
 
 module bottom_plate() {
+    motor_x = -chassis_length/2 + 25;
+    wheel_distance = 30;  // Distance from motor shaft to wheel shaft center
+    peg_length = 20;      // Length of horizontal 8mm mounting peg
+
     difference() {
         union() {
             // Main chassis plate
             rounded_rectangle(chassis_length, chassis_width, chassis_thickness, 5);
 
             // Integrated motor mounts (left and right)
+            // Moved inward by 20mm for gear meshing
             // Left motor mount - rotated to point outward (negative Y direction)
-            translate([-chassis_length/2 + 25, -chassis_width/2, chassis_thickness])
+            translate([-chassis_length/2 + 25, -chassis_width/2 + 20, chassis_thickness])
                 rotate([0, 0, -90])
                 motor_mount();
 
             // Right motor mount - rotated to point outward (positive Y direction)
-            translate([-chassis_length/2 + 25, chassis_width/2, chassis_thickness])
+            translate([-chassis_length/2 + 25, chassis_width/2 - 20, chassis_thickness])
                 rotate([0, 0, 90])
                 motor_mount();
+
+            // 8mm horizontal mounting pegs for wheel bearings (stick out from chassis edge)
+            // Positioned 30mm forward (+X) from motor for gear meshing
+
+            // Left side support and peg
+            // Vertical support covering the full length of peg, 3mm taller than motor height
+            translate([motor_x + wheel_distance - 6, -chassis_width/2, chassis_thickness])
+                cube([12, peg_length, motor_height + 3], center=false);
+
+            // Left peg - horizontal, pointing in -Y direction
+            translate([motor_x + wheel_distance, -chassis_width/2, chassis_thickness + motor_height])
+                rotate([90, 0, 0])
+                cylinder(d=8, h=peg_length, $fn=40);
+
+            // Right side support and peg
+            // Vertical support covering the full length of peg, 3mm taller than motor height
+            translate([motor_x + wheel_distance - 6, chassis_width/2 - peg_length, chassis_thickness])
+                cube([12, peg_length, motor_height + 3], center=false);
+
+            // Right peg - horizontal, pointing in +Y direction
+            translate([motor_x + wheel_distance, chassis_width/2, chassis_thickness + motor_height])
+                rotate([-90, 0, 0])
+                cylinder(d=8, h=peg_length, $fn=40);
         }
 
         // Arduino mounting holes
@@ -159,10 +194,10 @@ module motor_mount() {
                 cube([housing_length + bracket_thickness + 1, motor_flat_width + tolerance + 2, motor_diameter + tolerance + 2], center=true);
             }
 
-        // Motor shaft exit hole (front opening) - 4mm hole through front cap for shaft to exit outward
+        // Motor shaft exit hole (front opening) - 12mm hole through front cap for pinion gear clearance
         translate([-2, 0, motor_height])
             rotate([0, 90, 0])
-            cylinder(d=4, h=housing_length + bracket_thickness + 2, $fn=40);
+            cylinder(d=12, h=housing_length + bracket_thickness + 2, $fn=40);
 
         // Wire access slots (two slots on top and bottom for motor wires)
         translate([0, 0, motor_height + housing_outer_diameter/2 - wire_slot_height/2 + epsilon])
@@ -252,5 +287,131 @@ module assembly() {
         translate([-chassis_length/2 + 25, chassis_width/2 + motor_length + motor_shaft_length, chassis_thickness + motor_height])
             rotate([-90, 0, 0])
             cylinder(d=wheel_diameter, h=wheel_width, center=true, $fn=60);
+    }
+}
+
+module geared_assembly() {
+    // Assembly view showing the complete geared drive system
+    motor_x = -chassis_length/2 + 25;
+    wheel_distance = 30;  // Distance from motor shaft to wheel shaft center
+    peg_length = 20;      // Length of horizontal peg
+
+    // Bottom plate with integrated motor mounts and horizontal 8mm pegs
+    color([0.7, 0.8, 1.0])  // Light blue
+        bottom_plate();
+
+    // Motors (horizontal, pointing outward)
+    // Moved inward by 20mm for gear meshing
+    color([0.3, 0.3, 0.3]) {  // Dark gray
+        // Left motor - points toward -Y, moved inward by 20mm
+        translate([motor_x, -chassis_width/2 + 20 - motor_length/2, chassis_thickness + motor_height])
+            rotate([90, 0, 0])
+            cylinder(d=motor_diameter, h=motor_length, center=true, $fn=40);
+
+        // Right motor - points toward +Y, moved inward by 20mm
+        translate([motor_x, chassis_width/2 - 20 + motor_length/2, chassis_thickness + motor_height])
+            rotate([-90, 0, 0])
+            cylinder(d=motor_diameter, h=motor_length, center=true, $fn=40);
+    }
+
+    // Motor pinion gears (on motor shafts, vertical orientation)
+    color([1.0, 0.5, 0.0]) {  // Orange
+        // Left pinion - on left motor shaft, positioned 4mm from motor end
+        translate([motor_x, -chassis_width/2 + 20 - motor_length - 4, chassis_thickness + motor_height])
+            rotate([90, 0, 0])
+            motor_pinion();
+
+        // Right pinion - on right motor shaft
+        translate([motor_x, chassis_width/2 - 20 + motor_length + 4, chassis_thickness + motor_height])
+            rotate([-90, 0, 0])
+            motor_pinion();
+    }
+
+    // Ball bearings (22mm OD, 8mm ID) on the horizontal 8mm pegs
+    // Positioned 30mm forward (+X) from motor for proper gear meshing
+    color([0.9, 0.9, 0.95]) {  // Silver/white
+        // Left bearing - on horizontal peg, 12mm out from chassis edge
+        translate([motor_x + wheel_distance, -chassis_width/2 - 12, chassis_thickness + motor_height])
+            rotate([90, 0, 0])
+            difference() {
+                cylinder(d=22, h=7, center=true, $fn=60);
+                cylinder(d=8, h=8, center=true, $fn=40);
+            }
+
+        // Right bearing - on horizontal peg
+        translate([motor_x + wheel_distance, chassis_width/2 + 12, chassis_thickness + motor_height])
+            rotate([-90, 0, 0])
+            difference() {
+                cylinder(d=22, h=7, center=true, $fn=60);
+                cylinder(d=8, h=8, center=true, $fn=40);
+            }
+    }
+
+    // Geared wheels (mount on bearing OD, positioned to mesh with pinions)
+    // Wheels are 30mm forward (+X) from motor pinions for side-by-side gear meshing
+    // Rotated so gears face inward
+    color([1.0, 0.2, 0.2]) {  // Bright red
+        // Left wheel - on bearing, gear faces inward (toward chassis)
+        translate([motor_x + wheel_distance, -chassis_width/2 - 12, chassis_thickness + motor_height])
+            rotate([-90, 0, 0])
+            geared_wheel();
+
+        // Right wheel - on bearing, gear faces inward
+        translate([motor_x + wheel_distance, chassis_width/2 + 12, chassis_thickness + motor_height])
+            rotate([90, 0, 0])
+            geared_wheel();
+    }
+}
+
+module labeled_assembly() {
+    // Same as geared_assembly but with text labels
+    motor_x = -chassis_length/2 + 25;
+    wheel_distance = 30;
+
+    geared_assembly();
+
+    // Add 3D text labels
+    color("black") {
+        // Label: Bottom Plate
+        translate([0, -80, 0])
+            rotate([90, 0, 0])
+            linear_extrude(1)
+            text("Bottom Plate", size=8, halign="center", font="Liberation Sans:style=Bold");
+
+        // Label: Motor
+        translate([motor_x - 20, -chassis_width/2 - 40, chassis_thickness + motor_height])
+            rotate([90, 0, 0])
+            linear_extrude(1)
+            text("Motor", size=6, halign="center", font="Liberation Sans:style=Bold");
+
+        // Label: 10T Pinion Gear
+        translate([motor_x - 5, -chassis_width/2 - motor_length - 20, chassis_thickness + motor_height + 10])
+            rotate([90, 0, 0])
+            linear_extrude(1)
+            text("10T Pinion", size=5, halign="center", font="Liberation Sans:style=Bold");
+
+        // Label: 50T Wheel Gear
+        translate([motor_x + wheel_distance + 20, -chassis_width/2 - 30, chassis_thickness + motor_height])
+            rotate([90, 0, 0])
+            linear_extrude(1)
+            text("50T Wheel Gear", size=6, halign="center", font="Liberation Sans:style=Bold");
+
+        // Label: 22mm Bearing
+        translate([motor_x + wheel_distance, -chassis_width/2 - 25, chassis_thickness + motor_height - 10])
+            rotate([90, 0, 0])
+            linear_extrude(1)
+            text("Bearing", size=5, halign="center", font="Liberation Sans:style=Bold");
+
+        // Label: 8mm Peg
+        translate([motor_x + wheel_distance, -chassis_width/2 + 5, chassis_thickness + motor_height - 8])
+            rotate([90, 0, 0])
+            linear_extrude(1)
+            text("8mm Peg", size=4, halign="center", font="Liberation Sans:style=Bold");
+
+        // Label: 5:1 Ratio
+        translate([motor_x + 15, -chassis_width/2 - motor_length - 5, chassis_thickness + motor_height + 15])
+            rotate([90, 0, 0])
+            linear_extrude(1)
+            text("5:1 Gear Ratio", size=7, halign="center", font="Liberation Sans:style=Bold");
     }
 }
