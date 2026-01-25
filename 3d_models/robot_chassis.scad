@@ -67,7 +67,7 @@ if (part == "bottom_plate") {
 // ===== MODULES =====
 
 module bottom_plate() {
-    motor_x = -chassis_length/2 + 25;
+    motor_x = -chassis_length/2 + 10;
     wheel_distance = 30;  // Distance from motor shaft to wheel shaft center
     peg_length = 20;      // Length of horizontal 8mm mounting peg
 
@@ -77,14 +77,14 @@ module bottom_plate() {
             rounded_rectangle(chassis_length, chassis_width, chassis_thickness, 5);
 
             // Integrated motor mounts (left and right)
-            // Moved inward by 20mm for gear meshing
+            // Moved inward by 13mm for gear meshing (7mm farther from center)
             // Left motor mount - rotated to point outward (negative Y direction)
-            translate([-chassis_length/2 + 25, -chassis_width/2 + 20, chassis_thickness])
+            translate([-chassis_length/2 + 10, -chassis_width/2 + 13, chassis_thickness])
                 rotate([0, 0, -90])
                 motor_mount();
 
             // Right motor mount - rotated to point outward (positive Y direction)
-            translate([-chassis_length/2 + 25, chassis_width/2 - 20, chassis_thickness])
+            translate([-chassis_length/2 + 10, chassis_width/2 - 13, chassis_thickness])
                 rotate([0, 0, 90])
                 motor_mount();
 
@@ -96,20 +96,20 @@ module bottom_plate() {
             translate([motor_x + wheel_distance - 6, -chassis_width/2, chassis_thickness])
                 cube([12, peg_length, motor_height + 3], center=false);
 
-            // Left peg - horizontal, pointing in -Y direction
+            // Left peg - horizontal, pointing in -Y direction, with chamfered end
             translate([motor_x + wheel_distance, -chassis_width/2, chassis_thickness + motor_height])
                 rotate([90, 0, 0])
-                cylinder(d=8, h=peg_length, $fn=40);
+                chamfered_cylinder(d=8, h=peg_length, chamfer_height=1.5);
 
             // Right side support and peg
             // Vertical support covering the full length of peg, 3mm taller than motor height
             translate([motor_x + wheel_distance - 6, chassis_width/2 - peg_length, chassis_thickness])
                 cube([12, peg_length, motor_height + 3], center=false);
 
-            // Right peg - horizontal, pointing in +Y direction
+            // Right peg - horizontal, pointing in +Y direction, with chamfered end
             translate([motor_x + wheel_distance, chassis_width/2, chassis_thickness + motor_height])
                 rotate([-90, 0, 0])
-                cylinder(d=8, h=peg_length, $fn=40);
+                chamfered_cylinder(d=8, h=peg_length, chamfer_height=1.5);
         }
 
         // Arduino mounting holes
@@ -194,10 +194,10 @@ module motor_mount() {
                 cube([housing_length + bracket_thickness + 1, motor_flat_width + tolerance + 2, motor_diameter + tolerance + 2], center=true);
             }
 
-        // Motor shaft exit hole (front opening) - 12mm hole through front cap for pinion gear clearance
+        // Motor shaft exit hole (front opening) - 18mm hole through front cap for pinion gear clearance
         translate([-2, 0, motor_height])
             rotate([0, 90, 0])
-            cylinder(d=12, h=housing_length + bracket_thickness + 2, $fn=40);
+            cylinder(d=18, h=housing_length + bracket_thickness + 2, $fn=40);
 
         // Wire access slots (two slots on top and bottom for motor wires)
         translate([0, 0, motor_height + housing_outer_diameter/2 - wire_slot_height/2 + epsilon])
@@ -210,11 +210,11 @@ module motor_mount() {
         // These allow you to tighten small screws against the motor to lock it in place
         translate([housing_length/4, housing_outer_diameter/2 + epsilon, motor_height])
             rotate([90, 0, 0])
-            cylinder(d=2.5, h=bracket_thickness + 2*epsilon, $fn=20);
+            cylinder(d=2, h=bracket_thickness + 2*epsilon, $fn=20);
 
         translate([-housing_length/4, housing_outer_diameter/2 + epsilon, motor_height])
             rotate([90, 0, 0])
-            cylinder(d=2.5, h=bracket_thickness + 2*epsilon, $fn=20);
+            cylinder(d=2, h=bracket_thickness + 2*epsilon, $fn=20);
     }
 }
 
@@ -257,6 +257,18 @@ module rounded_rectangle(length, width, height, radius) {
     }
 }
 
+module chamfered_cylinder(d, h, chamfer_height) {
+    // Creates a cylinder with a chamfered end (45 degree bevel at the tip)
+    union() {
+        // Main cylinder body
+        cylinder(d=d, h=h - chamfer_height, $fn=40);
+
+        // Chamfered tip (cone at the end)
+        translate([0, 0, h - chamfer_height])
+            cylinder(d1=d, d2=d - chamfer_height*2, h=chamfer_height, $fn=40);
+    }
+}
+
 module assembly() {
     // Full assembly view for visualization
     // Bottom plate now includes integrated motor mounts
@@ -266,12 +278,12 @@ module assembly() {
     // Visualization of motors (not printable) - now pointing outward to sides
     color("gray", alpha=0.3) {
         // Left motor
-        translate([-chassis_length/2 + 25, -chassis_width/2 - motor_length/2, chassis_thickness + motor_height])
+        translate([-chassis_length/2 + 10, -chassis_width/2 + 13 - motor_length/2, chassis_thickness + motor_height])
             rotate([90, 0, 0])
             cylinder(d=motor_diameter, h=motor_length, center=true, $fn=40);
 
         // Right motor
-        translate([-chassis_length/2 + 25, chassis_width/2 + motor_length/2, chassis_thickness + motor_height])
+        translate([-chassis_length/2 + 10, chassis_width/2 - 13 + motor_length/2, chassis_thickness + motor_height])
             rotate([-90, 0, 0])
             cylinder(d=motor_diameter, h=motor_length, center=true, $fn=40);
     }
@@ -279,12 +291,12 @@ module assembly() {
     // Visualization of drive wheels (not printable) - on the sides
     color("black", alpha=0.3) {
         // Left wheel
-        translate([-chassis_length/2 + 25, -chassis_width/2 - motor_length - motor_shaft_length, chassis_thickness + motor_height])
+        translate([-chassis_length/2 + 10, -chassis_width/2 - motor_length - motor_shaft_length, chassis_thickness + motor_height])
             rotate([90, 0, 0])
             cylinder(d=wheel_diameter, h=wheel_width, center=true, $fn=60);
 
         // Right wheel
-        translate([-chassis_length/2 + 25, chassis_width/2 + motor_length + motor_shaft_length, chassis_thickness + motor_height])
+        translate([-chassis_length/2 + 10, chassis_width/2 + motor_length + motor_shaft_length, chassis_thickness + motor_height])
             rotate([-90, 0, 0])
             cylinder(d=wheel_diameter, h=wheel_width, center=true, $fn=60);
     }
@@ -292,7 +304,7 @@ module assembly() {
 
 module geared_assembly() {
     // Assembly view showing the complete geared drive system
-    motor_x = -chassis_length/2 + 25;
+    motor_x = -chassis_length/2 + 10;
     wheel_distance = 30;  // Distance from motor shaft to wheel shaft center
     peg_length = 20;      // Length of horizontal peg
 
@@ -301,15 +313,15 @@ module geared_assembly() {
         bottom_plate();
 
     // Motors (horizontal, pointing outward)
-    // Moved inward by 20mm for gear meshing
+    // Moved inward by 13mm for gear meshing (7mm farther from center)
     color([0.3, 0.3, 0.3]) {  // Dark gray
-        // Left motor - points toward -Y, moved inward by 20mm
-        translate([motor_x, -chassis_width/2 + 20 - motor_length/2, chassis_thickness + motor_height])
+        // Left motor - points toward -Y, moved inward by 13mm
+        translate([motor_x, -chassis_width/2 + 13 - motor_length/2, chassis_thickness + motor_height])
             rotate([90, 0, 0])
             cylinder(d=motor_diameter, h=motor_length, center=true, $fn=40);
 
-        // Right motor - points toward +Y, moved inward by 20mm
-        translate([motor_x, chassis_width/2 - 20 + motor_length/2, chassis_thickness + motor_height])
+        // Right motor - points toward +Y, moved inward by 13mm
+        translate([motor_x, chassis_width/2 - 13 + motor_length/2, chassis_thickness + motor_height])
             rotate([-90, 0, 0])
             cylinder(d=motor_diameter, h=motor_length, center=true, $fn=40);
     }
@@ -317,12 +329,12 @@ module geared_assembly() {
     // Motor pinion gears (on motor shafts, vertical orientation)
     color([1.0, 0.5, 0.0]) {  // Orange
         // Left pinion - on left motor shaft, positioned 4mm from motor end
-        translate([motor_x, -chassis_width/2 + 20 - motor_length - 4, chassis_thickness + motor_height])
+        translate([motor_x, -chassis_width/2 + 13 - motor_length - 4, chassis_thickness + motor_height])
             rotate([90, 0, 0])
             motor_pinion();
 
         // Right pinion - on right motor shaft
-        translate([motor_x, chassis_width/2 - 20 + motor_length + 4, chassis_thickness + motor_height])
+        translate([motor_x, chassis_width/2 - 13 + motor_length + 4, chassis_thickness + motor_height])
             rotate([-90, 0, 0])
             motor_pinion();
     }
@@ -365,7 +377,7 @@ module geared_assembly() {
 
 module labeled_assembly() {
     // Same as geared_assembly but with text labels
-    motor_x = -chassis_length/2 + 25;
+    motor_x = -chassis_length/2 + 10;
     wheel_distance = 30;
 
     geared_assembly();

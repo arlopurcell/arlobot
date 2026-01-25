@@ -279,7 +279,7 @@ module geared_wheel() {
         // Set screw holes to secure to bearing
         translate([0, bearing_od/2 + 3, 0])
             rotate([90, 0, 0])
-            cylinder(d=2.5, h=6, $fn=20);
+            cylinder(d=2, h=6, $fn=20);
     }
 }
 
